@@ -21,6 +21,7 @@ do
         for j in `scontrol show hostname $i`;
         do
             echo $j
-            ssh $j ls -la /scratch/$USER rm -rf /scratch/$USER
+            ssh $j ls -la /scratch/$USER 
+            ssh $j rm -rf /scratch/$USER
         done
 done
