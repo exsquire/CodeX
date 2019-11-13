@@ -1,7 +1,14 @@
 #One stop shop for normalizing numeric data using logs
+
+#Test data
+#library(ALL)
+#data(ALL)
+#test <- t(exprs(ALL))[,1:100]
+
+
 norMan <- function(x, base = exp(1), offset = FALSE, summary = FALSE){
   #Check if data is a numeric matrix
-  if(!is.matrix(x)){
+  if(!is.matrix(x) | !all(sapply(x, is.numeric))){
     stop("Must submit a numeric matrix")
   }
   #Check if data is suitable for log transformation
