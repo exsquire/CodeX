@@ -30,9 +30,11 @@ kernGeist <- function(input = ""){
   #Remove any equal sign and trailing alphanumerics, preserving commas
   argList <- unlist(strsplit(gsub("=[[:alnum:]]*",
                                   "",f5),","))
+  #Add funcName as attr
+  attr(argList, "Function") <- funcName
   #return
   argList
 }  
 
 
-#kernGeist("calc_genoprob")
+kernGeist("calc_genoprob")

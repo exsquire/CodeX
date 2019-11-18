@@ -1,6 +1,9 @@
-#input <- kernGeist("scan1")
+#setwd("~/R/Parent/Extility_Belt/CodeX/R/kernGeist/")
+#source("kernGeist.R")
+input <- kernGeist("scan1")
+
 #Ask which parameters to change
-makeRtrige <- function(input, openType = FALSE){
+makeRtrige <- function(input){
   chooseArgs <- select.list(input, preselect = NULL, 
                             multiple = TRUE,
                             title = "Choose your arguments:")
@@ -11,8 +14,7 @@ makeRtrige <- function(input, openType = FALSE){
     cat("=========================\n")
     cat("Argument", i ,":", tmp,"\n")
     argType <- ""
-    if(openType == TRUE){
-      while(!toupper(argType) %in% c("P", "N", "O", "E")){
+    while(!toupper(argType) %in% c("P", "N", "O", "E")){
         cat("=========================\n")
         argType <- readline("Select argument type: \n\n-path (P)\n-numeric (N)\n-object (O)\n-evaluate (E)\n")
       } 
@@ -32,12 +34,9 @@ makeRtrige <- function(input, openType = FALSE){
       #numeric value
       if(argType == "N"){
         Rtridge[["args"]][[tmp]] <- as.numeric(readline())
-      }
-    }else{
-      cat("=========================\n")
-      cat("Enter path to argument input:\n")
     }
   }
+  attr(Rtridge, "Function")<- attributes(input)$Function
   return(Rtridge)
 }
 
