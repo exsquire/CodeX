@@ -14,9 +14,9 @@ makeRtrige <- function(input){
     cat("=========================\n")
     cat("Argument", i ,":", tmp,"\n")
     argType <- ""
-    while(!toupper(argType) %in% c("P", "N", "O", "E")){
+    while(argType %in% c("P", "N", "O", "E")){
         cat("=========================\n")
-        argType <- readline("Select argument type: \n\n-path (P)\n-numeric (N)\n-object (O)\n-evaluate (E)\n")
+        argType <- toupper(readline("Select argument type: \n\n-path (P)\n-numeric (N)\n-object (O)\n-evaluate (E)\n"))
       } 
       cat("Enter argument:\n")
       #Enter the path to your object - supports RDS only
@@ -41,4 +41,5 @@ makeRtrige <- function(input){
 }
 
 #test <- makeRtrige(input)
+
 
