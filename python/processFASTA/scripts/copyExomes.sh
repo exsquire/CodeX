@@ -10,8 +10,8 @@ GET_FILES=$(printf '%s.fasta\n' $PULL)
 #echo $GET_FILES
 
 #Copy files from GET_FILES into 'exomes' directory
-cd ../wk4_exomes
+cd ../test_exomes
 cp $GET_FILES ../exomes
 
-echo -e Moving the following files from /wk4_exomes to /exomes:"\n"$GET_FILES
+echo -e Moving the following files from /test_exomes to /exomes:"\n"$GET_FILES
 echo Done.

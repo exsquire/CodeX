@@ -2,7 +2,7 @@
 #TESTING_PLAYGROUND--------------------------
 #Test single motif method
 #MOTIF1=TACATCTCTCTC #Single Motif
-#EXOME1=$(cat exomes/lamb.fasta)
+#EXOME1=$(cat test_exomes/lamb.fasta)
 
 #echo "$MOTIF1" | wc -l
 #COUNT=$(echo "$EXOME1" | grep -o $MOTIF1 | wc -l)
