@@ -1,0 +1,18 @@
+eveRest is a peak processing tool meant to work with genome scan outputs from r/qtl2.
+
+**Purpose:** Genome scan results from expression matrices are not small (10's of gigs) and span tens of thousands of phenotypes. Extracting the max peak per chromosome per phenotype iis compute heavy and not great to do in R. eveRest processes peaks in batches, adds additional location and gene annotation data, then writes out the results. These can later be row binded into a master results file for downstream eQTL analysis. 
+
+eveRest accepts LOD scores across scanned SNPs for individual phenotypes, applies phenotype-specific thresholds,
+and builds rows of a results file with the following information:
+
+- lodcolumn
+- marker
+- peak chromosome
+- peak location WRT to chromosome (Mbp)
+- peak location WRT to genome (Mbp)
+- gene probe chromosome
+- gene probe location WRT to chromosome (Mbp)
+- gene probe location WRT to genome (Mbp)
+
+
+*Usage:* Submit individual phenotype scans to eveRest from a genome scan object using a loop, apply, or HPC cluster-array. Bind the results afterwards.  
