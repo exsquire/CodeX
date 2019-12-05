@@ -1,7 +1,9 @@
 #eveRest
+setwd("./CodeX/R/eveRest")
 source("../extilityBelt/zaWoruldo.R")
 
-#Testing
+###Testing - uncomment to test#########
+
 #offset <- readRDS("test/mmus_offset.rds")
 #scanOut <- readRDS("test/testOut.rds")
 #annot <- readRDS("test/testAnnot.rds")
@@ -90,6 +92,7 @@ eveRest <- function(oneScan, thresh = NULL, map , annot, confType = "lod" ){
   return(cleanPeak)
 }
 
+#Uncomment to test
 #########Use with full genome scan##########
 #outlist <- list()
 
@@ -102,4 +105,5 @@ eveRest <- function(oneScan, thresh = NULL, map , annot, confType = "lod" ){
 
 #outlist[sapply(outlist, is.null)] <- NULL
 #res <- do.call("rbind", outlist)
+#saveRDS(res, "resfile.rds")
 
