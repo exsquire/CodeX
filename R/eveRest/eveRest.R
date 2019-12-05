@@ -1,9 +1,12 @@
 #eveRest
-scanOut <- readRDS("test/testOut.rds")
-annot <- readRDS("test/testAnnot.rds")
-pmap <- reaDRDS("test/pmap.rds")
+source("../extilityBelt/zaWoruldo.R")
 
-oneScan <- scanOut[,24, drop = F]
+#Testing
+#offset <- readRDS("test/mmus_offset.rds")
+#scanOut <- readRDS("test/testOut.rds")
+#annot <- readRDS("test/testAnnot.rds")
+#pmap <- reaDRDS("test/pmap.rds")
+#oneScan <- scanOut[,1, drop = F]
 
 #Can select betwen dropLOD (default 1.8 lod for intercross studies) or Bayesian credible interval (default 95%) 
 #Will work for different annotation files, as long as the match key for the lodcolumn is in the first column of the annotation file.
@@ -40,6 +43,7 @@ eveRest <- function(oneScan, thresh = NULL, map , annot, confType = "lod" ){
   }
   ########Format peak object########
   cleanPeak <- peak[,-1]
+  rm(peak)
   #Add markers
   cleanPeak$markers <- find_marker(map = map,
                                    cleanPeak$chr,
@@ -54,42 +58,48 @@ eveRest <- function(oneScan, thresh = NULL, map , annot, confType = "lod" ){
   #Append annotation info using the lodcol as the key
   addAnnot <- annot[match(cleanPeak[,1],annot[,1]), c(
                     "probe_chr",
-                    "probe_start_loc", 
-                    "probe_stop_loc",
+                    "probe_start_loc",
                     "ENTREZID",
                     "SYMBOL",
                     "GENENAME")]
   cleanPeak <- cbind(cleanPeak, addAnnot)
-  cleanPeak <- cleanPeak[which(!is.na(cleanPeak$posLoc)),]
-  cleanPeak$CT_loose <- ifelse(peak$chr == peak$probeChr, "cis", "trans")
-  #cleanPeak$CT_strict <- 
   
-  if(exists("error_probes")){
-    print(error_probes)
+  #Reformat annotation names to match qtl2 vernacular
+  colnames(cleanPeak)[c(9, 12)] <- c("probe_posLoc", "DESC")
+  cleanPeak <- cleanPeak[which(!is.na(cleanPeak$posLoc)),]
+  cleanPeak$CT_loose <- ifelse(cleanPeak$chr == cleanPeak$probe_chr, "cis", "trans")
+  
+  #Add global positions
+  cleanPeak$posGlob <- zaWoruldo(cleanPeak, 2, 3, offset)
+  cleanPeak$probe_posGlob <- zaWoruldo(cleanPeak, 8, 9, offset)
+  #Must take into account crossing chr in global mode  - set normally, then adjust
+  chr_bound <- data.frame(lo = offset$offset - 4, hi = offset$offset +4)
+  cleanPeak$CT_strict <- ifelse(cleanPeak$posGlob >= (cleanPeak$probe_posGlob - 4) & 
+                                  cleanPeak$posGlob <= (cleanPeak$probe_posGlob + 4),"cis", "trans")
+ 
+  #If cross-boundary, set eQTl to trans
+  for(j in 1:nrow(cleanPeak)){
+    pos <- cleanPeak$posGlob[j]  
+    if(any(pos >= chr_bound$lo & pos <= chr_bound$hi)){
+      cleanPeak$CT_strict[j] <- "trans"
+    }
   }
-  return(peak)
+  
+
+  
+  return(cleanPeak)
 }
 
-#########Format final outlist##########
-#library(pbapply)
-#input <- list.files([inputfolder],full.names = T)
-#peak_list <- pblapply(input, eveRest)
+#########Use with full genome scan##########
+#outlist <- list()
 
-#output <- do.call("rbind", peak_list)
-#Format output
-#source("../../Extility_Belt/offsetter9000.R")
+#pb <- txtProgressBar(min = 0, max = ncol(scanOut), style = 3)
+#for(i in 1:ncol(scanOut)){
+#  outlist[[i]] <- eveRest(scanOut[,i,drop = F], map = pmap, annot = annot)
+#  setTxtProgressBar(pb, i)
+#}
+#close(pb)
 
-#Offset the marker positions - now for ci_lo and ci_hi, as well
-#output <- offsetter9000(output, 4, 3, offset)
-#output <- offsetter9000(output, 6, 3, offset)
-#output <- offsetter9000(output, 7, 3, offset)
+#outlist[sapply(outlist, is.null)] <- NULL
+#res <- do.call("rbind", outlist)
 
-#Does the probePos need offsetting? check first
-#output$probePos_Mbp <- output$probePos_Mbp/(1e+06)
-#output <- offsetter9000(output, 8, 7,offset)
-
-#output$CT <- ifelse(output$chr == output$probeChr, "cis","trans")
-#output$lodindex <- NULL
-#output$offset   <- NULL
-
-#saveRDS(output, file = "DO2_addRes.rds")

@@ -28,5 +28,5 @@ zaWoruldo <- function(x, chr, pos, offset, unWorld = F){
   return(res)
 }
 
-cleanPeak$posGlob<- zaWoruldo(cleanPeak, 2, 3, offset)
-cleanPeak$posGlobRev<- zaWoruldo(cleanPeak, 2, 14, offset, unWorld = T)
+#cleanPeak$posGlob<- zaWoruldo(cleanPeak, chr = 2, pos = 3, offset)
+#cleanPeak$posGlobRev<- zaWoruldo(cleanPeak, chr = 2, pos = 14, offset, unWorld = T)
