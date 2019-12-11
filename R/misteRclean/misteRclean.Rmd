@@ -1,0 +1,200 @@
+---
+title: "misteRclean"
+author: "Excel Que"
+date: "December 9, 2019"
+output: html_document
+---
+
+# Description:
+misteRclean is a pipeline for building and testing master datasets.
+
+***
+
+# Purpose: 
+Large studies often incorporate data from various raw data files. The structure of these files are often different from one another based on the various output structures/protocols of different machines, pipelines, facilities, or individual collaborators. As of now, there is no clear nor elegant way to programatically clean, reformat, and merge said raw data.
+
+In misteRclean, we suggest a pipeline-based approach where raw data files are assembled and processed by hand into analysis-specific CSVs with a common format and key.
+
+As the CSVs are built, the researcher compiles a codebook, which is a data dictionary with additional columns that can be used to direct cleaning functions in R and link the master data back to specific raw files for future reference and QC. 
+
+Finally, the CSVs are merged into a master file by a full outer join, keeping all unique columns and rows. This "processed_master" can be used as is or compared to an existing_master data set to find discrepancies in either the processed_master (raw data) or existing master. 
+
+There are several benefits to this approach:
+
+**Simplifies Data Format:** Transferring data from spreadsheets into .csv format removes hidden code, distracting formatting, and Date/Time system oddities, which are common in certain file types, such as .xlsx, and can have unforseen effects on your data when copying and pasting. 
+
+**Improves Data Familiarity:** The old-fashioned method of building the CSVs and data dictionary by hand gives the researcher a chance to explore their dataset in digestible modules while serving as a first pass for outliers or errors in the raw data.
+
+**Collaboration and QC:** Having a data dictionary, a directory of the raw data and processed data, and a column linking specific variables to their raw file sources at the end makes sharing your work and subsequent quality control steps more manageable. 
+
+**Ease of Analysis:** Processed CSVs are assembled in a single object in R allowing for analysis within or across individual data files. Summary reports of missing samples, NAs, outliers, etc. can be easily generated.  
+
+**Speed and completeness:** When comparing the processed_master to the existing_master, all cells can be checked against one another in a matter of seconds. Allowing for faster turn around of high confidence data and a more complete understanding of where errors in your data cleaning process may have occurred. 
+
+***
+
+# Method:
+
+## 1. Build a master codebook
+
+Begin by constructing a data dictionary with the following columns:
+
+- **Variable:** name of variable in master data
+- **Source File:** Name of variable's raw data source file 
+- **Sheet:** If source is an xls with multiple sheets, specify sheet here
+- **Processed File:** Name of variable's processed data source file
+- **Original Variable Name:** Name of variable in processed data source file - should be the same as raw data source file. 
+- **R Data Type:** Only character, numeric, or integer. Factors, dates, and times can always be converted from character later with no loss of information.  
+
+
+```{r load codebook}
+code <- read.csv("\\\\FILE2\\BennettLab\\Active Data\\ExcelsFolder\\DOF1_PhenoRebuild\\DOF1_Codebook_EQ_120919.csv",
+                 stringsAsFactors = F, 
+                 na.strings = c("NA", "n/a",""))
+
+#Need first 6 columns 
+#First test case uses only first 46 rows
+code <- code[1:46,1:6]
+
+#Subset remove custom rows
+codeFilt <- code[complete.cases(code),]
+
+#Clean the commenters brackets from all columns
+#Commenter brackets will always appear directly behind the value, no spaces, and use curly brackets
+
+codeFilt <- as.data.frame(lapply(codeFilt, gsub, pattern = "\\{.*$", replacement = ""), stringsAsFactors = F)
+
+
+#Trim whitespace in codeFilt variables
+codeFilt$Variable <- trimws(codeFilt$Variable, "right")
+```
+
+
+```{r load master}
+master <- read.csv("\\\\FILE2\\BennettLab\\Active Data\\ExcelsFolder\\DOF1_PhenoRebuild\\DOF1_MasterPhenotypeData_EQcheck_120919.csv", stringsAsFactors = F,na.strings = c("NA", "n/a"))
+
+#Check that all non-custom codebook variables exist in the master
+table(codeFilt$Variable %in% colnames(master))
+
+#Check which ones if any missing
+#codeFilt$Variable[! codeFilt$Variable %in% colnames(master)]
+
+#Filter for codebook variables 
+mastFilt <- master[,codeFilt$Variable]
+dim(mastFilt)
+```
+
+```{r path to processed folder}
+library(gtools)
+keyName <- "mouseID"
+procPath <- "\\\\FILE2\\BennettLab\\Active Data\\ExcelsFolder\\DOF1_PhenoRebuild\\processed"
+files <- list.files(procPath, full.names = T)
+
+#Build a master from processed files with same column names
+outlist <- list()
+for(i in seq_along(files)){
+  #tmp out processed file
+  tmp <- read.csv(files[i], stringsAsFactors = F,
+                  check.names = F)
+  
+  codeTmp <- codeFilt[codeFilt$Processed.File == basename(files[i]) &
+                        codeFilt$Original.Variable.Name %in%
+                        colnames(tmp)[-1],]
+  
+  classOut <- c("character",codeTmp$R.Data.Type)
+  
+  tmp <- read.csv(files[i], stringsAsFactors = F,
+                  check.names = F,
+                  colClasses = classOut)
+  
+  #match tmp names to originals in code book
+  newNames <- codeTmp$Variable[match(colnames(tmp), codeTmp$Original.Variable.Name)]
+  #First col always sample ID
+  newNames[1] <- keyName
+  
+  colnames(tmp) <- newNames
+  tmp <- tmp[mixedorder(tmp$mouseID),]
+  outlist[[i]] <- tmp
+}
+```
+
+
+```{r merge list and clean}
+library(tidyverse)
+library(dplyr)
+procMaster <- Reduce(
+  function(x, y){
+    merge(x,y,all=T)
+  }, outlist)
+
+#procMaster Cleaning-------------------
+#Remove blank ids
+procMaster <- procMaster[nchar(procMaster$mouseID) != 0,]
+#Sort procMaster colnames by Master colnames 
+sortCol <- colnames(master)[colnames(master) %in% colnames(procMaster)]
+#Sort colnames in human readable order
+procMaster <- procMaster[mixedorder(procMaster$mouseID),sortCol]
+rownames(procMaster) <- procMaster$mouseID
+
+#Build subset Master------------------
+masterClass <- sapply(procMaster, class)
+master <- read.csv("\\\\FILE2\\BennettLab\\Active Data\\ExcelsFolder\\DOF1_PhenoRebuild\\DOF1_MasterPhenotypeData_EQcheck_120919.csv", 
+                   stringsAsFactors = F,
+                   na.strings = c("NA", "n/a"),
+                   colClasses = masterClass)
+
+
+subMaster <- master[,sortCol]
+```
+
+
+```{r Final Checks: Numeric}
+#Two checks
+#Number one: Numeric correlation check
+canCor <- sapply(procMaster,class) == "numeric" | sapply(procMaster,class) == "integer"
+
+#Pull diagonal
+corCheck <- diag(cor(procMaster[,canCor], subMaster[,canCor], use = "complete"))
+
+#Print side by side comparison list of non-perfect correlations
+#Check IDs align
+stopifnot(procMaster$mouseID == subMaster$mouseID)
+checkNum_list <- list()
+for(i in seq_along(names(corCheck))){
+  if(!near(corCheck[[names(corCheck)[i]]], 1)){
+    look <- data.frame(ID = procMaster$mouseID,
+                       procVar = procMaster[[names(corCheck)[i]]], 
+                       masVar = subMaster[[names(corCheck)[i]]],
+                       stringsAsFactors = FALSE)
+    look$abs_diff <- abs(look$procVar - look$masVar)
+    look$perc_diff <- round(look$abs_diff/((look$procVar + look$masVar)/2) *100,1)
+    checkNum_list[[names(corCheck)[i]]] <- look
+  }
+}
+
+#sapply out the non-zero absolute differences 
+sink("Mismatch_Summary.txt")
+cat("========================================\n")
+cat("misteRclean Mismatch Summary\n")
+cat("========================================")
+for(i in seq_along(checkNum_list)){
+  tmp <- checkNum_list[[i]]
+  tmp <- tmp[tmp$abs_diff != 0 & complete.cases(tmp),]
+  rownames(tmp) <- NULL
+  cat("\nVariable:",names(checkNum_list)[i],"\n")
+  cat("========================================\n")
+  print.data.frame(tmp[order(tmp$perc_diff, decreasing = TRUE),], 
+        row.names = F)
+  cat("========================================")
+}
+sink()
+
+```
+
+```{r Final Checks: Character}
+#Number two: character match check
+
+
+
+```
+
