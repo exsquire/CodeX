@@ -1,6 +1,10 @@
-The Extility Belt
-
+   +++++++++++++++++++++++++++++++++
+[[{+|| X ||The Extility Belt|| X ||+}]]
+   +++++++++++++++++++++++++++++++++
 Storage for miscellaneous convenience scripts
 
 zaWoruldo: Switch between genome-wide and chromosome relative positional data
+
 CT_plotter: Quick and dirty square plots for eQTL in mus musculus
+
+conveCorr: Convenient wrapper of Hmisc's rcorr function with automatic p-value matrix alignment, plotting, and multiple correction. 
