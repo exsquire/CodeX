@@ -35,9 +35,12 @@ There are several benefits to this approach:
 
 # Method:
 
-## 1. Build a master codebook
+## 1. Build a master codebook and processed CSVs 
 
-Begin by constructing a data dictionary with the following columns:
+The master codebook is an enhanced data dictionary. A normal data dictionary provides context to variable names and formats in the master dataset. The code book adds additional columns that allow researchers to trace back a variable in the master dataset to a specific file and column in the raw data. 
+
+### **Notes**
+misteRclean requires the first 6 rows in the following order:
 
 - **Variable:** name of variable in master data
 - **Source File:** Name of variable's raw data source file 
@@ -46,7 +49,18 @@ Begin by constructing a data dictionary with the following columns:
 - **Original Variable Name:** Name of variable in processed data source file - should be the same as raw data source file. 
 - **R Data Type:** Only character, numeric, or integer. Factors, dates, and times can always be converted from character later with no loss of information.  
 
+Any columns additional columns will not affect misteRclean. 
 
+#### **Custom Variables**
+
+Sometimes, we want a column in our master data that is calculated from existing columns (e.g. age from birth date). These are not present in the raw data files and should be ignored by misteRclean
+
+To do so, name these values as "custom" and put NAs in columns 2-6 for these rows. 
+
+
+
+# Code
+***
 ```{r load codebook}
 code <- read.csv("\\\\FILE2\\BennettLab\\Active Data\\ExcelsFolder\\DOF1_PhenoRebuild\\DOF1_Codebook_EQ_120919.csv",
                  stringsAsFactors = F, 
@@ -54,7 +68,7 @@ code <- read.csv("\\\\FILE2\\BennettLab\\Active Data\\ExcelsFolder\\DOF1_PhenoRe
 
 #Need first 6 columns 
 #First test case uses only first 46 rows
-code <- code[1:46,1:6]
+code <- code[,1:6]
 
 #Subset remove custom rows
 codeFilt <- code[complete.cases(code),]
@@ -64,7 +78,6 @@ codeFilt <- code[complete.cases(code),]
 
 codeFilt <- as.data.frame(lapply(codeFilt, gsub, pattern = "\\{.*$", replacement = ""), stringsAsFactors = F)
 
-
 #Trim whitespace in codeFilt variables
 codeFilt$Variable <- trimws(codeFilt$Variable, "right")
 ```
@@ -72,6 +85,7 @@ codeFilt$Variable <- trimws(codeFilt$Variable, "right")
 
 ```{r load master}
 master <- read.csv("\\\\FILE2\\BennettLab\\Active Data\\ExcelsFolder\\DOF1_PhenoRebuild\\DOF1_MasterPhenotypeData_EQcheck_120919.csv", stringsAsFactors = F,na.strings = c("NA", "n/a"))
+
 
 #Check that all non-custom codebook variables exist in the master
 table(codeFilt$Variable %in% colnames(master))
@@ -82,38 +96,53 @@ table(codeFilt$Variable %in% colnames(master))
 #Filter for codebook variables 
 mastFilt <- master[,codeFilt$Variable]
 dim(mastFilt)
+
+#master key vector of mouseIDs
+mKey <- as.character(mastFilt[[1]])
+
 ```
 
 ```{r path to processed folder}
 library(gtools)
 keyName <- "mouseID"
 procPath <- "\\\\FILE2\\BennettLab\\Active Data\\ExcelsFolder\\DOF1_PhenoRebuild\\processed"
-files <- list.files(procPath, full.names = T)
+files <- list.files(procPath, full.names = T, pattern = "\\.csv")
 
 #Build a master from processed files with same column names
 outlist <- list()
 for(i in seq_along(files)){
   #tmp out processed file
   tmp <- read.csv(files[i], stringsAsFactors = F,
-                  check.names = F)
+                  check.names = F,
+                  na.strings = c("NA", "n/a",""))
   
   codeTmp <- codeFilt[codeFilt$Processed.File == basename(files[i]) &
                         codeFilt$Original.Variable.Name %in%
                         colnames(tmp)[-1],]
   
+  codeTmp <- codeTmp[match(colnames(tmp),
+                           codeTmp$Original.Variable.Name),]
+  codeTmp <- codeTmp[complete.cases(codeTmp),]
   classOut <- c("character",codeTmp$R.Data.Type)
   
   tmp <- read.csv(files[i], stringsAsFactors = F,
                   check.names = F,
-                  colClasses = classOut)
+                  colClasses = classOut,
+                  na.strings = c("NA", "n/a",""))
   
   #match tmp names to originals in code book
   newNames <- codeTmp$Variable[match(colnames(tmp), codeTmp$Original.Variable.Name)]
   #First col always sample ID
   newNames[1] <- keyName
-  
   colnames(tmp) <- newNames
-  tmp <- tmp[mixedorder(tmp$mouseID),]
+  tmp <- tmp[mixedorder(tmp[[keyName]]),]
+  if(!all(tmp[[keyName]] %in% mKey)){
+    problemChildren <- tmp[[keyName]][!tmp[[keyName]] %in% mKey]
+    stop("\n",
+         "The following IDs are not in the master key:\n",
+         paste0(problemChildren,sep = "\n"))
+  }
+  
   outlist[[i]] <- tmp
 }
 ```
@@ -173,9 +202,9 @@ for(i in seq_along(names(corCheck))){
 }
 
 #sapply out the non-zero absolute differences 
-sink("Mismatch_Summary.txt")
+sink("Numeric_Mismatch.txt")
 cat("========================================\n")
-cat("misteRclean Mismatch Summary\n")
+cat("misteRclean Numeric Mismatch Summary\n")
 cat("========================================")
 for(i in seq_along(checkNum_list)){
   tmp <- checkNum_list[[i]]
@@ -191,10 +220,43 @@ sink()
 
 ```
 
+
+
 ```{r Final Checks: Character}
 #Number two: character match check
+nonNum <- sapply(procMaster, class) == "character"
+checkChar <- colnames(procMaster)[nonNum]
+  
+checkChar_list <- list()
+for(i in seq_along(checkChar)){
+  stopifnot(procMaster$mouseID == subMaster$mouseID)
+  look <- data.frame(ID = procMaster$mouseID,
+                     procVar = procMaster[[checkChar[i]]],
+                     masVar  = subMaster[[checkChar[i]]],
+                     stringsAsFactors = FALSE)
+  look$mismatch <- look$procVar == look$masVar
+  checkChar_list[[checkChar[i]]] <- look
+}
 
 
-
+#sapply out the non-zero absolute differences 
+sink("Character_Mismatch.txt")
+cat("========================================\n")
+cat("misteRclean Character Mismatch Summary\n")
+cat("========================================")
+for(i in seq_along(checkChar_list)){
+  tmp <- checkChar_list[[i]]
+  tmp <- tmp[tmp$mismatch == FALSE & complete.cases(tmp),]
+  rownames(tmp) <- NULL
+  if(nrow(tmp) != 0){
+  cat("\nVariable:",names(checkChar_list)[i],"\n")
+  cat("========================================\n")
+  
+    print.data.frame(tmp, row.names = F)
+  
+  cat("========================================")
+  }
+}
+sink()
 ```
 
