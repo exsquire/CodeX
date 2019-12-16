@@ -37,5 +37,5 @@ kernGeist <- function(input = ""){
 }  
 
 
-#kernGeist("calc_genoprob")
+kernGeist("calc_genoprob")
 
