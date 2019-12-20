@@ -13,11 +13,11 @@ norMan <- function(x, base = exp(1), offset = FALSE, summary = FALSE){
     apply(x, 2, function(x) shapiro.test(x)$statistic < 0.95)
   }
   if(any(nonNorm(x))){
+    #Non-norms
+    colnames(x)[nonNorm(x)]
     #Transform the non-normals and check for non-normality
     tmp <- x[,nonNorm(log(x[,nonNorm(x)], base))]
     #If log transformation makes them normal, apply a log transformation to non-normal columns
-    
-    
     
     #Bind them to the original data
   
