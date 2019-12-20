@@ -4,8 +4,8 @@ test <- sort(sample(seq(100), 75))
 #There are 4 categories:
 #seqL:sequential on the left only - KEEP
 #seqR:sequential on the right only - KEEP
-#none:sequential on neither side - DUMP
-#both:sequential on both sides - KEEP
+#none:sequential on neither side - KEEP
+#both:sequential on both sides - DUMP
 
 status <- numeric(length(test))
 for(i in seq_along(test)){
