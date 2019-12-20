@@ -35,4 +35,9 @@ alias mylimits='sacctmgr list associations format=Account,User,Partition,qos'
 #Show cluster configuration settings
 alias configs='scontrol show config'
 
+#Run interactive R in pseudo terminal on FARM
+alias ptyR='srun --mem=60000 --time=24:00:00 --partition=high --pty R'
+
+#Run interactive bash in pseudo terminal on FARM
+alias ptyBash='srun --mem=60000 --time=24:00:00 --partition=high --pty bash'
 
