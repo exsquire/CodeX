@@ -1,7 +1,7 @@
 # [[{+|| X ||The Extility Belt|| X ||+}]]
 
 
-Storage for miscellaneous convenience scripts
+Storage for miscellaneous convenience scripts and algorithms
 
 **zaWoruldo:** Switch between genome-wide and chromosome relative positional data
 
