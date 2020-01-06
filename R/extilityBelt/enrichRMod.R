@@ -1,6 +1,7 @@
 #Submit a vector of genes to Ma'ayan Labs' EnrichR Tool
 #Uses API query method from enrichR package: https://cran.r-project.org/package=enrichR. 
-enrichrMod <- function (genes, databases = as.character(listEnrichrDbs()[["libraryName"]]), quiet = F) 
+enrichrMod <- function (genes, alpha = 0.05, 
+                        databases = as.character(listEnrichrDbs()[["libraryName"]]), quiet = F) 
 {
   library(httr)
   library(enrichR)
@@ -49,8 +50,8 @@ enrichrMod <- function (genes, databases = as.character(listEnrichrDbs()[["libra
   
   nullCull <- function(x){
     #for each slot, check Adjusted.P.Value column
-    #Null if greater than 0.05
-    x <- x[x$Adjusted.P.value <= 0.05,-c(5,6)]
+    #Null if greater than alpha
+    x <- x[x$Adjusted.P.value <= alpha,-c(5,6)]
   }
   
   res <- lapply(result, nullCull)
