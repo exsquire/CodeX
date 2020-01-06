@@ -14,3 +14,5 @@ Storage for miscellaneous convenience scripts and algorithms
 **perminator:** Submit phenotype matrix and chunk parameters, generates control file for directing array jobs
 
 **cmdInput:** Example script of command line user input from Rscript
+
+**exAUC:** Calculate various flavors of area-under-the-curve for time series data using the trapezoid method
