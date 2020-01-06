@@ -1,6 +1,5 @@
-#    +++++++++++++++++++++++++++++++++
-#    <center>[[{+|| X ||The Extility Belt|| X ||+}]]</center>
-#    +++++++++++++++++++++++++++++++++
+# [[{+|| X ||The Extility Belt|| X ||+}]]
+
 
 Storage for miscellaneous convenience scripts
 
