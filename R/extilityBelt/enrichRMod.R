@@ -48,13 +48,13 @@ enrichrMod <- function (genes, alpha = 0.05,
     cat("Done.\n")
   }
   
-  nullCull <- function(x){
+  nullCull <- function(x, alpha = 0.05){
     #for each slot, check Adjusted.P.Value column
     #Null if greater than alpha
     x <- x[x$Adjusted.P.value <= alpha,-c(5,6)]
   }
   
-  res <- lapply(result, nullCull)
+  res <- lapply(result, nullCull, alpha = alpha)
   if(any(sapply(res,is.null))){
     res <- res[sapply(res,is.null) != TRUE]
   }
