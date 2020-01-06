@@ -18,3 +18,5 @@ Storage for miscellaneous convenience scripts and algorithms
 **exAUC:** Calculate various flavors of area-under-the-curve for time series data using the trapezoid method
 
 **ranger:** Checks for range overlap 
+
+**EnrichrRMod:** Wraps the enrichR package in an error-filter, alpha-subsetter, and dataframe builder. 
