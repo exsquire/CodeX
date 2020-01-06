@@ -16,3 +16,5 @@ Storage for miscellaneous convenience scripts and algorithms
 **cmdInput:** Example script of command line user input from Rscript
 
 **exAUC:** Calculate various flavors of area-under-the-curve for time series data using the trapezoid method
+
+**ranger:** Checks for range overlap 
