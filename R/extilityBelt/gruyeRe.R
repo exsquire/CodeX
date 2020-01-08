@@ -5,10 +5,10 @@
 #Iterates through non-numeric data columns, within column, iterates through rows, repping the row value by ncol(numDF)
 #cbinds list of "variable", "value", and non-numeric data vectors. 
 
-gruyere <- function(x){
+gruyeRe <- function(x){
   classFilt <- sapply(x, class) == "numeric" | sapply(x, class) == "integer"
   numDF <- x[,classFilt]
-  etcDF <- x[,!classFilt]
+  etcDF <- x[,!classFilt, drop = FALSE]
   
   #multiply the colnames by the number of rows
   var <- rep(colnames(numDF), nrow(numDF))
@@ -36,3 +36,5 @@ gruyere <- function(x){
   return(do.call("cbind", etcList))
 }
 
+#test it
+#test <- gruyeRe(iris)
