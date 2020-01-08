@@ -20,3 +20,5 @@ Storage for miscellaneous convenience scripts and algorithms
 **ranger:** Checks for range overlap 
 
 **EnrichrRMod:** Wraps the enrichR package in an error-filter, alpha-subsetter, and dataframe builder. 
+
+**gruyeRe:** Melts wide-format data using base R methods. Ideal for making complex ggplots. 
