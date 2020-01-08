@@ -4,11 +4,10 @@
 #For numeric data, concats the numeric rows to form the "value" column, reps the colnames per nrow
 #Iterates through non-numeric data columns, within column, iterates through rows, repping the row value by ncol(numDF)
 #cbinds list of "variable", "value", and non-numeric data vectors. 
-
 gruyeRe <- function(x){
   classFilt <- sapply(x, class) == "numeric" | sapply(x, class) == "integer"
   numDF <- x[,classFilt]
-  etcDF <- x[,!classFilt, drop = FALSE]
+  etcDF <- x[,!classFilt, drop = F]
   
   #multiply the colnames by the number of rows
   var <- rep(colnames(numDF), nrow(numDF))
@@ -29,11 +28,13 @@ gruyeRe <- function(x){
     }
     etcList[[desig]] <- etcMelt
   }
-  etcList[["value"]] <- val
   etcList[["variable"]] <- var
+  etcList[["value"]] <- val
   #stop if all vector lengths are NOT the same
   stopifnot(length(unique(sapply(etcList, length))) == 1)
-  return(do.call("cbind", etcList))
+  out <- type.convert(as.data.frame(do.call("cbind", etcList), stringsAsFactors = FALSE)
+                      , as.is = TRUE, numerals = "warn.loss")
+  return(out)
 }
 
 #test it
