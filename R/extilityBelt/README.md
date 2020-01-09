@@ -1,4 +1,4 @@
-# [[{+|| X ||The Extility Belt|| X ||+}]]
+# The Extility Belt
 
 
 Storage for miscellaneous convenience scripts and algorithms
