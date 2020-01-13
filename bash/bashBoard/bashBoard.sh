@@ -17,6 +17,9 @@ alias catLast='cat "$(ls -rt | tail -n1)"'
 alias countFiles='ls -1 | wc -l'
 #Check sh symlink
 alias checkShell='file -h /bin/sh'
+#Grep your history log for specific commands
+alias gh='history|grep'
+
 
 #FARM-specific
 #Quick R roll ups
