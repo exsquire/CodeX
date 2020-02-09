@@ -1,12 +1,18 @@
 #Build ~/.bashrc custom aliases for cluster use
+#Copy Paste into .bashrc
 #TO ACTIVATE MANUALLY  > source ~/.bashrc
 ##########BASHBOARD##########
 #Aliases
+#Bashboard controls - edit and refresh 
+alias editBB='vi ~/.bashrc'
+alias refreshBB='source ~/.bashrc'
+
 #Protective functions
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
 alias chmod='chmod -v'
+
 #Updating job queue
 alias jobs='squeue -u $USER -i10'
 #See cluster traffic
@@ -17,15 +23,18 @@ alias catLast='cat "$(ls -rt | tail -n1)"'
 alias countFiles='ls -1 | wc -l'
 #Check sh symlink
 alias checkShell='file -h /bin/sh'
+
+#Utility functions#############
 #Grep your history log for specific commands
 alias gh='history|grep'
+alias yank='cd $flag'
 
 
 #FARM-specific
 #Quick R roll ups
 alias ptyR='srun --mem=60000 --time=24:00:00 --partition=high --pty R'
 #Quick Dash roll ups
-alias ptyDash='srun --mem=60000 --time=24:00:00 --partition=high --pty sh'
+alias ptyBash='srun --mem=60000 --time=24:00:00 --partition=high --pty bash'
 
 ##CERES-specific
 #Show cluster configuration settings
@@ -48,6 +57,12 @@ LAST=${arr[-1]}
 sed -n "${FIRST},${LAST}p" ~/.bashrc
 }
 
+#tether - save variable tether to pwd, venture away and defines yank() to return to tether
+function tether() { 
+export flag=$(pwd)
+printf "Tethered to $flag\n"
+}
+
 #snoop - pull user data by user name - accepts multiple arguments
 function snoop() { for user in "$@" ; do echo "Snooping on $user" ;  grep "$user" /etc/passwd; printf "\n"; done }
 
@@ -59,7 +74,6 @@ read -p 'Time (hours): ' TIME
 read -p 'Partition: ' PARTITION
 read -p 'Program: ' PROGRAM
 printf "Requesting...\n"
-
 srun --mem=$MEM --time="$TIME:00:00" --partition=$PARTITION --pty $PROGRAM
 }
 
