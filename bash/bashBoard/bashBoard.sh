@@ -5,7 +5,11 @@
 #Aliases
 #Bashboard controls - edit and refresh 
 alias editBB='vi ~/.bashrc'
+
+#Location of bashrc may change to bash_profile
 alias refreshBB='source ~/.bashrc'
+#For Ceres, use . /etc/bashrc
+#alias refreshBB='. /etc/bashrc'
 
 #Protective functions
 alias rm='rm -i'
