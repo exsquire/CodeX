@@ -58,11 +58,16 @@ genData <- function(){
   }else{
     stop("testdf exists - genData() will overwrite it.\nrm(testdf) first.")
   }
+  if(!exists("time_vec")){
+    time_vec <<- time
+  }else{
+    stop("time_vec exists - genData() will overwrite it.\nrm(time_vec) first.")
+  }
 }
 
 #Uncomment the lines below and run to see how it works
 #genData()
-#apply(testdf,1,exAUC, time)
+#apply(testdf,1,exAUC, time_vec)
 
 #test <- exAUC(testdf[3,], time, expand = T, iAUC = T, allowNeg = T) #single sample
 #plot(time,testdf[3,], type = "l")
