@@ -32,7 +32,7 @@ CTplot <- function(res,
   chr_shade2 <- chr_shade[c(1,3,5,7,9,11,13,15,17,19),]
   chr_shade3 <- chr_shade[c(2,4,6,8,10,12,14,16,18,20),]
   
-  viz <- ggplot(data = res, aes(x = posGlob, y = probe_posGlob, color = CT_strict)) + geom_point(size = ptSize) + 
+  viz <- ggplot(data = res, aes(x = mPos_glob, y = probePos_Mbp, color = CT_strict)) + geom_point(size = ptSize) + 
     theme_bw()+ 
     scale_x_continuous(limits = c(0,offset$offset[21]),breaks=midpoints, labels=chr_labels, expand=c(0, 0), minor_breaks=offset$offset) +
     scale_y_continuous(limits = c(0,offset$offset[21]), breaks=midpoints, labels=chr_labels, expand=c(0, 0), minor_breaks=offset$offset) + 
